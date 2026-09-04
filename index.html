@@ -1,1 +1,380 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A320 Livery Studio — Fenix MSFS 2024</title>
+<link rel="icon" href="data:," />
 
+<!-- Tailwind CSS via CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          cockpit: {
+            950: '#070A0E',
+            900: '#0B0F14',
+            800: '#111820',
+            700: '#182029',
+            600: '#232C36',
+            500: '#3A4552',
+            400: '#8592A0',
+            200: '#C7D0D9',
+            100: '#E4E9EE',
+          },
+          hud: {
+            DEFAULT: '#33E1FF',
+            dim: '#1B8FA6',
+          },
+          amber: {
+            DEFAULT: '#FFB020',
+          },
+        },
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+
+<!-- Google Fonts: UI-Schrift, Instrumenten-Mono und Text-Werkzeug-Schriften -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@400;500;700&family=Bebas+Neue&family=Orbitron:wght@500;700;900&family=Archivo+Black&family=Teko:wght@500;700&display=swap"
+  rel="stylesheet"
+/>
+
+<!-- Fabric.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js" defer></script>
+<script src="./main.js" defer></script>
+
+<style>
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #111820;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3a4552;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #8592a0;
+  }
+
+  input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #232c36;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #33e1ff;
+    border: 2px solid #0b0f14;
+    cursor: pointer;
+  }
+  input[type='range']::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #33e1ff;
+    border: 2px solid #0b0f14;
+    cursor: pointer;
+  }
+
+  input[type='color'] {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    padding: 0;
+    background: none;
+  }
+  input[type='color']::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  input[type='color']::-webkit-color-swatch {
+    border: 1px solid #232c36;
+    border-radius: 6px;
+  }
+
+  #canvas-stage {
+    background-image: linear-gradient(45deg, #182029 25%, transparent 25%),
+      linear-gradient(-45deg, #182029 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #182029 75%),
+      linear-gradient(-45deg, transparent 75%, #182029 75%);
+    background-size: 24px 24px;
+    background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
+    background-color: #0e141b;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e4e9ee;
+    margin-bottom: 12px;
+  }
+  .section-label::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: #33e1ff;
+    border-radius: 2px;
+  }
+</style>
+</head>
+
+<body class="bg-cockpit-950 text-cockpit-100 font-sans antialiased h-screen w-screen overflow-hidden">
+
+<div class="flex h-screen w-screen">
+
+  <!-- ============ LINKE SIDEBAR: WERKZEUGE ============ -->
+  <aside class="w-[320px] shrink-0 h-full bg-cockpit-800 border-r border-cockpit-600 flex flex-col overflow-y-auto">
+
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="text-lg font-bold tracking-tight">Livery Studio</p>
+      <p class="text-xs text-cockpit-400 mt-0.5">Fenix A320 · MSFS 2024</p>
+    </div>
+
+    <!-- Presets -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Presets</p>
+      <div class="grid grid-cols-1 gap-2">
+        <button data-preset="modern-streak" type="button"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-md border border-cockpit-600 bg-cockpit-700 hover:border-hud hover:bg-cockpit-600 transition-colors text-left">
+          <span class="w-8 h-8 rounded-sm shrink-0" style="background: linear-gradient(135deg,#F4F6F8 45%,#0F6FFF 45%)"></span>
+          <span>
+            <span class="block text-sm font-medium">Modern Streak</span>
+            <span class="block text-xs text-cockpit-400">Diagonaler Farbverlauf</span>
+          </span>
+        </button>
+        <button data-preset="classic-flag" type="button"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-md border border-cockpit-600 bg-cockpit-700 hover:border-hud hover:bg-cockpit-600 transition-colors text-left">
+          <span class="w-8 h-8 rounded-sm shrink-0" style="background: linear-gradient(180deg,#C81E2C 20%,#FDFDFB 20% 80%,#C81E2C 80%)"></span>
+          <span>
+            <span class="block text-sm font-medium">Classic Flag</span>
+            <span class="block text-xs text-cockpit-400">Zierlinien, klassisches Rot</span>
+          </span>
+        </button>
+        <button data-preset="clean-white" type="button"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-md border border-cockpit-600 bg-cockpit-700 hover:border-hud hover:bg-cockpit-600 transition-colors text-left">
+          <span class="w-8 h-8 rounded-sm shrink-0 border border-cockpit-500" style="background:#FFFFFF"></span>
+          <span>
+            <span class="block text-sm font-medium">Clean White</span>
+            <span class="block text-xs text-cockpit-400">Minimalistisch, hell</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Lackierung -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Lackierung</p>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label for="fuselage-color" class="text-sm text-cockpit-200">Rumpf</label>
+          <div class="flex items-center gap-2">
+            <span id="fuselage-hex" class="text-xs font-mono text-cockpit-400">#C9CFD6</span>
+            <input id="fuselage-color" type="color" value="#C9CFD6" class="w-9 h-9 rounded cursor-pointer" />
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="tail-color" class="text-sm text-cockpit-200">Leitwerk</label>
+          <div class="flex items-center gap-2">
+            <span id="tail-hex" class="text-xs font-mono text-cockpit-400">#1B2530</span>
+            <input id="tail-color" type="color" value="#1B2530" class="w-9 h-9 rounded cursor-pointer" />
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <label for="engine-color" class="text-sm text-cockpit-200">Triebwerke</label>
+          <div class="flex items-center gap-2">
+            <span id="engine-hex" class="text-xs font-mono text-cockpit-400">#2A323C</span>
+            <input id="engine-color" type="color" value="#2A323C" class="w-9 h-9 rounded cursor-pointer" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kennzeichen -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Kennzeichen</p>
+      <div class="flex gap-2">
+        <input id="registration-input" type="text" maxlength="10" placeholder="D-AINA"
+          class="flex-1 px-3 py-2 rounded-md bg-cockpit-700 border border-cockpit-600 text-sm font-mono tracking-wider placeholder:text-cockpit-500 focus:outline-none focus:border-hud" />
+        <button id="registration-apply-btn" type="button"
+          class="px-3 py-2 rounded-md bg-hud text-cockpit-950 text-sm font-semibold hover:bg-hud-dim transition-colors">
+          Setzen
+        </button>
+      </div>
+    </div>
+
+    <!-- Text -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Text hinzufügen</p>
+
+      <label class="block text-xs text-cockpit-400 mb-1">Inhalt</label>
+      <input id="text-content-input" type="text" placeholder="z. B. FLYFENIX"
+        class="w-full mb-3 px-3 py-2 rounded-md bg-cockpit-700 border border-cockpit-600 text-sm placeholder:text-cockpit-500 focus:outline-none focus:border-hud" />
+
+      <label class="block text-xs text-cockpit-400 mb-1">Schriftart (Google Fonts)</label>
+      <select id="text-font-select"
+        class="w-full mb-3 px-3 py-2 rounded-md bg-cockpit-700 border border-cockpit-600 text-sm focus:outline-none focus:border-hud">
+      </select>
+
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="block text-xs text-cockpit-400 mb-1">Größe</label>
+          <input id="text-size-range" type="range" min="40" max="260" step="2" value="120" class="w-full" />
+        </div>
+        <div>
+          <label class="block text-xs text-cockpit-400 mb-1">Farbe</label>
+          <input id="text-color-input" type="color" value="#1B2530" class="w-9 h-9 rounded cursor-pointer" />
+        </div>
+      </div>
+
+      <label class="block text-xs text-cockpit-400 mb-1">Biegung / Arc (−100 bis 100)</label>
+      <input id="text-curve-range" type="range" min="-100" max="100" step="5" value="0" class="w-full mb-3" />
+
+      <div class="flex gap-2">
+        <button id="text-add-btn" type="button"
+          class="flex-1 px-3 py-2 rounded-md bg-hud text-cockpit-950 text-sm font-semibold hover:bg-hud-dim transition-colors">
+          Text einfügen
+        </button>
+        <button id="text-update-btn" type="button"
+          class="flex-1 px-3 py-2 rounded-md border border-cockpit-600 text-sm hover:border-hud hover:text-hud transition-colors">
+          Auswahl aktualisieren
+        </button>
+      </div>
+    </div>
+
+    <!-- Formen -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Formen</p>
+      <div class="flex items-center gap-2 mb-3">
+        <label for="shape-fill-input" class="text-xs text-cockpit-400">Füllfarbe</label>
+        <input id="shape-fill-input" type="color" value="#33E1FF" class="w-9 h-9 rounded cursor-pointer" />
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <button id="shape-rect-btn" type="button"
+          class="px-2 py-2 rounded-md border border-cockpit-600 text-xs hover:border-hud hover:text-hud transition-colors">
+          Rechteck
+        </button>
+        <button id="shape-circle-btn" type="button"
+          class="px-2 py-2 rounded-md border border-cockpit-600 text-xs hover:border-hud hover:text-hud transition-colors">
+          Kreis
+        </button>
+        <button id="shape-path-btn" type="button"
+          class="px-2 py-2 rounded-md border border-cockpit-600 text-xs hover:border-hud hover:text-hud transition-colors">
+          Freihand
+        </button>
+      </div>
+    </div>
+
+    <!-- Bild / Logo -->
+    <div class="px-5 py-5">
+      <p class="section-label">Logo / Bild</p>
+      <input id="image-upload-input" type="file" accept=".png,.svg,image/png,image/svg+xml" class="hidden" />
+      <label for="image-upload-input"
+        class="block text-center px-3 py-3 rounded-md border border-dashed border-cockpit-500 text-sm text-cockpit-300 hover:border-hud hover:text-hud cursor-pointer transition-colors">
+        PNG / SVG hochladen
+      </label>
+      <p class="text-xs text-cockpit-500 mt-2">Transparenz und Ebenen-Reihenfolge bleiben erhalten.</p>
+    </div>
+
+  </aside>
+
+  <!-- ============ HAUPTBEREICH: CANVAS ============ -->
+  <main class="flex-1 h-full flex flex-col min-w-0">
+
+    <div class="h-12 shrink-0 border-b border-cockpit-600 bg-cockpit-800 flex items-center justify-between px-5">
+      <p class="text-xs text-cockpit-400">2D-Editor · Arbeitsfläche 2048 × 2048 px</p>
+      <div class="flex items-center gap-1">
+        <button id="zoom-out-btn" type="button"
+          class="w-7 h-7 rounded-md border border-cockpit-600 text-sm hover:border-hud hover:text-hud transition-colors">−</button>
+        <span id="zoom-level-label" class="w-14 text-center text-xs font-mono text-cockpit-300">100 %</span>
+        <button id="zoom-in-btn" type="button"
+          class="w-7 h-7 rounded-md border border-cockpit-600 text-sm hover:border-hud hover:text-hud transition-colors">+</button>
+        <button id="zoom-reset-btn" type="button"
+          class="ml-2 px-3 h-7 rounded-md border border-cockpit-600 text-xs hover:border-hud hover:text-hud transition-colors">
+          Einpassen
+        </button>
+      </div>
+    </div>
+
+    <div id="canvas-stage" class="flex-1 min-h-0 overflow-auto flex items-center justify-center p-6">
+      <canvas id="livery-canvas"></canvas>
+    </div>
+
+  </main>
+
+  <!-- ============ RECHTE SIDEBAR: EBENEN / EIGENSCHAFTEN / PROJEKT ============ -->
+  <aside class="w-[320px] shrink-0 h-full bg-cockpit-800 border-l border-cockpit-600 flex flex-col overflow-y-auto">
+
+    <!-- Ansicht -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Ansicht</p>
+      <label class="flex items-center justify-between cursor-pointer">
+        <span class="text-sm text-cockpit-200">UV-Grid & Umriss-Guides</span>
+        <input id="guides-toggle-checkbox" type="checkbox" class="w-4 h-4 accent-hud cursor-pointer" />
+      </label>
+    </div>
+
+    <!-- Ebenen -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Ebenen</p>
+      <ul id="layers-list" class="space-y-2 max-h-56 overflow-y-auto"></ul>
+    </div>
+
+    <!-- Eigenschaften -->
+    <div class="px-5 py-5 border-b border-cockpit-600">
+      <p class="section-label">Eigenschaften</p>
+      <div id="properties-panel">
+        <p class="text-xs text-cockpit-400">Wähle ein Element aus, um seine Eigenschaften zu bearbeiten.</p>
+      </div>
+    </div>
+
+    <!-- Projekt -->
+    <div class="px-5 py-5">
+      <p class="section-label">Projekt</p>
+      <div class="space-y-2">
+        <button id="save-project-btn" type="button"
+          class="w-full px-3 py-2 rounded-md bg-hud text-cockpit-950 text-sm font-semibold hover:bg-hud-dim transition-colors">
+          Als JSON speichern
+        </button>
+
+        <input id="load-project-input" type="file" accept=".json,application/json" class="hidden" />
+        <label for="load-project-input"
+          class="block w-full text-center px-3 py-2 rounded-md border border-cockpit-600 text-sm hover:border-hud hover:text-hud cursor-pointer transition-colors">
+          Projekt laden
+        </label>
+
+        <button id="new-project-btn" type="button"
+          class="w-full px-3 py-2 rounded-md border border-red-500/40 text-red-400 text-sm hover:bg-red-500/10 transition-colors">
+          Neues Projekt
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+</body>
+</html>
