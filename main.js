@@ -47,7 +47,32 @@ document.addEventListener('DOMContentLoaded', () => {
   setupKeyboardShortcuts();
   fitCanvasToContainer();
   window.addEventListener('resize', fitCanvasToContainer);
+  exposeCanvasToThreeJsBridge();
 });
+
+/* ==========================================================
+   BRÜCKE ZUR 3D-LIVE-VORSCHAU (viewer3d.js)
+   ========================================================== */
+
+// Macht die Fabric.js-Instanz global verfügbar und informiert das
+// (als ES-Modul separat geladene) viewer3d.js darüber, dass das
+// 2D-Canvas bereit ist. viewer3d.js hängt sich dann selbst an das
+// "after:render"-Event von Fabric, um die Three.js-Textur bei jeder
+// Canvas-Änderung live zu aktualisieren (texture.needsUpdate = true).
+function exposeCanvasToThreeJsBridge() {
+  window.LiveryApp = window.LiveryApp || {};
+  window.LiveryApp.fabricCanvas = state.canvas;
+  window.LiveryApp.canvasElement = state.canvas.lowerCanvasEl;
+
+  document.dispatchEvent(
+    new CustomEvent('livery:canvas-ready', {
+      detail: {
+        fabricCanvas: state.canvas,
+        canvasElement: state.canvas.lowerCanvasEl,
+      },
+    })
+  );
+}
 
 /* ==========================================================
    CANVAS-INITIALISIERUNG & ZOOM
